@@ -1,0 +1,6 @@
+# Twitter/X links to download — one URL per line
+# Supported formats:
+#   https://twitter.com/user/status/123456789
+#   https://x.com/user/status/123456789
+#   https://t.co/shortcode
+# Query parameters (e.g. ?s=20) are stripped automatically
