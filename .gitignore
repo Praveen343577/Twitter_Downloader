@@ -1,0 +1,83 @@
+# ─────────────────────────────────────────────
+#  Python
+# ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# ─────────────────────────────────────────────
+#  Virtual Environments
+# ─────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ─────────────────────────────────────────────
+#  Distribution / Packaging
+# ─────────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ─────────────────────────────────────────────
+#  Project Runtime Data  (generated at runtime)
+# ─────────────────────────────────────────────
+# Persistent Chromium browser session (Playwright)
+data/browser_session/
+
+# SQLite tracker database
+data/tracker.db
+
+# Failed-links log (re-generated each run)
+data/failed.txt
+
+# Input links file – keep template only, not personal URLs
+# Comment this line out if you want to track links.txt in git
+data/links.txt
+
+# ─────────────────────────────────────────────
+#  Downloaded Media
+# ─────────────────────────────────────────────
+downloads/
+
+# ─────────────────────────────────────────────
+#  Environment / Secrets
+# ─────────────────────────────────────────────
+.env
+.env.*
+*.env
+secrets.py
+credentials.py
+
+# ─────────────────────────────────────────────
+#  IDE & Editor Artifacts
+# ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────────
+#  Logs
+# ─────────────────────────────────────────────
+*.log
+logs/
+
+# ─────────────────────────────────────────────
+#  Testing & Coverage
+# ─────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
