@@ -1,18 +1,15 @@
 import os
 import requests
 
-def download_file(url: str, filename: str, output_dir: str = "downloads"):
+def download_file(url: str, filepath: str):
     """
-    Downloads a file from a direct URL to the specified output directory.
+    Downloads a file from a direct URL to the specified filepath.
     Uses chunked downloading to handle large video files efficiently.
     """
-    if not url or not filename:
-        print("[!] Invalid URL or filename provided to downloader.")
+    if not url or not filepath:
+        print("[!] Invalid URL or filepath provided to downloader.")
         return False
         
-    os.makedirs(output_dir, exist_ok=True)
-    filepath = os.path.join(output_dir, filename)
-    
     print(f"[*] Downloading to {filepath}...")
     
     try:
@@ -33,7 +30,6 @@ def download_file(url: str, filename: str, output_dir: str = "downloads"):
                         # Print simple progress if total_size is known
                         if total_size > 0:
                             percent = int((downloaded_size / total_size) * 100)
-                            # Print on the same line
                             print(f"\r    Progress: {percent}% ({downloaded_size}/{total_size} bytes)", end="")
                             
             print("\n[*] Download completed successfully.")
@@ -42,8 +38,3 @@ def download_file(url: str, filename: str, output_dir: str = "downloads"):
     except Exception as e:
         print(f"\n[!] Error downloading file: {e}")
         return False
-
-if __name__ == "__main__":
-    # Test script
-    test_url = "https://raw.githubusercontent.com/psf/requests/main/README.md"
-    download_file(test_url, "requests_readme.md")
