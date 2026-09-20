@@ -31,7 +31,7 @@ async def extract_video_info(twitter_url: str):
         await page.route("**/*", handle_request)
         
         try:
-            print(f"[*] Navigating to {config.TARGET_URL} for {twitter_url}...")
+            print(f"    Navigating to {config.TARGET_URL} for {twitter_url}...")
             await page.goto(config.TARGET_URL)
             
             # Input the twitter URL
@@ -40,7 +40,7 @@ async def extract_video_info(twitter_url: str):
             # Click Fetch
             await page.click(config.SUBMIT_SELECTOR)
             
-            print("[*] Waiting for video card to load...")
+            print("    Waiting for video card to load...")
             # Wait for the HD quality button to appear
             hd_button = page.locator(config.BEST_QUALITY_SELECTOR)
             await hd_button.wait_for(state="visible", timeout=15000)
@@ -59,9 +59,9 @@ async def extract_video_info(twitter_url: str):
             else:
                 description = ""
                 
-            print(f"[*] Extracted Info - Name: {account_name}, Username: {username}")
+            print(f"    Extracted Info - Name: {account_name}, Username: {username}")
             
-            print("[*] Triggering download to intercept URL...")
+            print("    Triggering download to intercept URL...")
             # Click it to trigger the proxy request
             await hd_button.click()
             
@@ -79,7 +79,7 @@ async def extract_video_info(twitter_url: str):
             }
                 
         except Exception as e:
-            print(f"[!] Error during extraction: {e}")
+            print(f"    Error during extraction: {e}")
             return None
         finally:
             await browser.close()
