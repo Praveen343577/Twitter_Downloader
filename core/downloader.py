@@ -7,10 +7,10 @@ def download_file(url: str, filepath: str):
     Uses chunked downloading to handle large video files efficiently.
     """
     if not url or not filepath:
-        print("[!] Invalid URL or filepath provided to downloader.")
+        print("    Invalid URL or filepath provided to downloader.")
         return False
         
-    print(f"[*] Downloading to {filepath}...")
+    print(f"    Downloading to {filepath}...")
     
     try:
         # Stream the download to avoid loading the whole file into memory
@@ -30,11 +30,11 @@ def download_file(url: str, filepath: str):
                         # Print simple progress if total_size is known
                         if total_size > 0:
                             percent = int((downloaded_size / total_size) * 100)
-                            print(f"\r    Progress: {percent}% ({downloaded_size}/{total_size} bytes)", end="")
+                            print(f"\r        Progress: {percent}% ({downloaded_size}/{total_size} bytes)", end="")
                             
-            print("\n[*] Download completed successfully.")
+            print("\n    Download completed successfully.")
             return True
             
     except Exception as e:
-        print(f"\n[!] Error downloading file: {e}")
+        print(f"\n    Error downloading file: {e}")
         return False
