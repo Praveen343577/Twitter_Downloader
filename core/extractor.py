@@ -48,9 +48,15 @@ async def extract_video_info(twitter_url: str):
             # Extract metadata using config selectors
             account_name = await page.locator(config.ACCOUNT_NAME_SELECTOR).first.inner_text()
             username = await page.locator(config.USERNAME_SELECTOR).first.inner_text()
-            try:
-                description = await page.locator(config.DESCRIPTION_SELECTOR).first.inner_text()
-            except Exception:
+            
+            # Check if description exists to avoid waiting; use a 5-second timeout if it does
+            desc_locator = page.locator(config.DESCRIPTION_SELECTOR)
+            if await desc_locator.count() > 0:
+                try:
+                    description = await desc_locator.first.inner_text(timeout=5000)
+                except Exception:
+                    description = ""
+            else:
                 description = ""
                 
             print(f"[*] Extracted Info - Name: {account_name}, Username: {username}")
