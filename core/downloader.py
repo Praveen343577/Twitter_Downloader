@@ -30,7 +30,9 @@ def download_file(url: str, filepath: str):
                         # Print simple progress if total_size is known
                         if total_size > 0:
                             percent = int((downloaded_size / total_size) * 100)
-                            print(f"\r        Progress: {percent}% ({downloaded_size}/{total_size} bytes)", end="")
+                            downloaded_mb = downloaded_size / (1024 * 1024)
+                            total_mb = total_size / (1024 * 1024)
+                            print(f"\r        Progress: {percent}% ({downloaded_mb:.2f}/{total_mb:.2f} MB)", end="")
                             
             print("\n    Download completed successfully.")
             return True
