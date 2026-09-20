@@ -44,7 +44,8 @@ async def process_links():
         print(f"    Successfully extracted direct URL.")
         
         # 2. Get organized filepath using project utilities
-        filepath = get_next_filepath(info["account_name"], ".mp4")
+        username_clean = info["username"].replace("@", "")
+        filepath = get_next_filepath(username_clean, ".mp4")
         
         # 3. Download the video file
         success = download_file(info["video_url"], filepath)
