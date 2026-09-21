@@ -1,7 +1,7 @@
 import os
 import asyncio
 import random
-from core.extractor import extract_video_info
+from core.extractor import VideoExtractor
 from core.downloader import download_file
 import config
 from utils.sanitizer import sanitize_link
@@ -24,58 +24,66 @@ async def process_links():
         
     print(f"Found {len(links)} links to process.")
     
-    for i, raw_link in enumerate(links, 1):
-        print(f"\n--- Processing Link {i}/{len(links)} ---")
-        link = sanitize_link(raw_link)
-        print(f"    URL: {link}")
-        
-        if is_downloaded(link):
-            print("    Link already downloaded. Skipping...")
-            continue
-        
-        # 1. Extract direct video URL and metadata
-        info = await extract_video_info(link)
-        
-        if not info or not info.get("video_url"):
-            print("    Failed to extract video info. Skipping...")
-            insert_record(link, None, None, None, config.STATUS_FAILED)
-            continue
+    extractor = VideoExtractor()
+    print("\nInitializing browser session...")
+    await extractor.start()
+    
+    try:
+        for i, raw_link in enumerate(links, 1):
+            print(f"\n--- Processing Link {i}/{len(links)} ---")
+            link = sanitize_link(raw_link)
+            print(f"    URL: {link}")
             
-        print(f"    Successfully extracted direct URL.")
-        
-        # 2. Get organized filepath using project utilities
-        username_clean = info["username"].replace("@", "")
-        filepath = get_next_filepath(username_clean, ".mp4")
-        
-        # 3. Download the video file
-        success = download_file(info["video_url"], filepath)
-        
-        if success:
-            insert_record(
-                url=link,
-                account_name=info["account_name"],
-                username=info["username"],
-                description=info["description"],
-                status=config.STATUS_SUCCESS
-            )
-            print("    Link processed successfully.")
-        else:
-            insert_record(
-                url=link,
-                account_name=info["account_name"],
-                username=info["username"],
-                description=info["description"],
-                status=config.STATUS_FAILED
-            )
-            print("    Link processing failed during download.")
+            if is_downloaded(link):
+                print("    Link already downloaded. Skipping...")
+                continue
             
-        # Optional anti-bot delay
-        if i < len(links):
-            delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX)
-            print(f"\n    Sleeping for {delay:.2f} seconds before next link...")
-            await asyncio.sleep(delay)
+            # 1. Extract direct video URL and metadata
+            info = await extractor.extract_video_info(link)
             
-    print("\nAll operations completed.")
+            if not info or not info.get("video_url"):
+                print("    Failed to extract video info. Skipping...")
+                insert_record(link, None, None, None, config.STATUS_FAILED)
+                continue
+                
+            print(f"    Successfully extracted direct URL.")
+            
+            # 2. Get organized filepath using project utilities
+            username_clean = info["username"].replace("@", "")
+            filepath = get_next_filepath(username_clean, ".mp4")
+            
+            # 3. Download the video file
+            success = download_file(info["video_url"], filepath)
+            
+            if success:
+                insert_record(
+                    url=link,
+                    account_name=info["account_name"],
+                    username=info["username"],
+                    description=info["description"],
+                    status=config.STATUS_SUCCESS
+                )
+                print("    Link processed successfully.")
+            else:
+                insert_record(
+                    url=link,
+                    account_name=info["account_name"],
+                    username=info["username"],
+                    description=info["description"],
+                    status=config.STATUS_FAILED
+                )
+                print("    Link processing failed during download.")
+                
+            # Optional anti-bot delay
+            if i < len(links):
+                delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX)
+                print(f"\n    Sleeping for {delay:.2f} seconds before next link...")
+                await asyncio.sleep(delay)
+                
+        print("\nAll operations completed.")
+    finally:
+        print("\nCleaning up and closing browser...")
+        await extractor.stop()
 
 def main():
     asyncio.run(process_links())
