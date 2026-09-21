@@ -3,54 +3,70 @@ from urllib.parse import urlparse, parse_qs
 from playwright.async_api import async_playwright
 import config
 
-async def extract_video_info(twitter_url: str):
-    """
-    Navigates to savevidai.israfill.dev, inputs the twitter URL, and intercepts
-    the proxy request to extract the direct Twitter CDN video URL.
-    Also extracts metadata (account name, username, description).
-    """
-    video_url = None
-    
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
-        page = await browser.new_page()
+class VideoExtractor:
+    def __init__(self):
+        self.playwright = None
+        self.browser = None
+        self.page = None
+        self.video_url = None
 
-        async def handle_request(route, request):
-            nonlocal video_url
-            if "/api/proxy" in request.url:
-                parsed_url = urlparse(request.url)
-                params = parse_qs(parsed_url.query)
-                if "url" in params:
-                    video_url = params["url"][0]
-                # Abort so Playwright doesn't download it
-                await route.abort()
-            else:
-                await route.continue_()
-
+    async def start(self):
+        self.playwright = await async_playwright().start()
+        self.browser = await self.playwright.chromium.launch(headless=False)
+        self.page = await self.browser.new_page()
+        
         # Intercept all requests to catch the /api/proxy call
-        await page.route("**/*", handle_request)
+        await self.page.route("**/*", self.handle_request)
+        
+        print(f"    Navigating to {config.TARGET_URL}...")
+        await self.page.goto(config.TARGET_URL)
+
+    async def stop(self):
+        if self.browser:
+            await self.browser.close()
+        if self.playwright:
+            await self.playwright.stop()
+
+    async def handle_request(self, route, request):
+        if "/api/proxy" in request.url:
+            parsed_url = urlparse(request.url)
+            params = parse_qs(parsed_url.query)
+            if "url" in params:
+                self.video_url = params["url"][0]
+            # Abort so Playwright doesn't download it
+            await route.abort()
+        else:
+            await route.continue_()
+
+    async def extract_video_info(self, twitter_url: str):
+        """
+        Inputs the twitter URL, and intercepts
+        the proxy request to extract the direct Twitter CDN video URL.
+        Also extracts metadata (account name, username, description).
+        """
+        self.video_url = None
         
         try:
-            print(f"    Navigating to {config.TARGET_URL} for {twitter_url}...")
-            await page.goto(config.TARGET_URL)
+            # Clear the input field completely before filling
+            await self.page.fill(config.INPUT_SELECTOR, "")
             
             # Input the twitter URL
-            await page.fill(config.INPUT_SELECTOR, twitter_url)
+            await self.page.fill(config.INPUT_SELECTOR, twitter_url)
             
             # Click Fetch
-            await page.click(config.SUBMIT_SELECTOR)
+            await self.page.click(config.SUBMIT_SELECTOR)
             
             print("    Waiting for video card to load...")
             # Wait for the HD quality button to appear
-            hd_button = page.locator(config.BEST_QUALITY_SELECTOR)
+            hd_button = self.page.locator(config.BEST_QUALITY_SELECTOR)
             await hd_button.wait_for(state="visible", timeout=15000)
             
             # Extract metadata using config selectors
-            account_name = await page.locator(config.ACCOUNT_NAME_SELECTOR).first.inner_text()
-            username = await page.locator(config.USERNAME_SELECTOR).first.inner_text()
+            account_name = await self.page.locator(config.ACCOUNT_NAME_SELECTOR).first.inner_text()
+            username = await self.page.locator(config.USERNAME_SELECTOR).first.inner_text()
             
             # Check if description exists to avoid waiting; use a 5-second timeout if it does
-            desc_locator = page.locator(config.DESCRIPTION_SELECTOR)
+            desc_locator = self.page.locator(config.DESCRIPTION_SELECTOR)
             if await desc_locator.count() > 0:
                 try:
                     description = await desc_locator.first.inner_text(timeout=5000)
@@ -67,12 +83,12 @@ async def extract_video_info(twitter_url: str):
             
             # Wait for the interception to populate the variables
             for _ in range(50):
-                if video_url:
+                if self.video_url:
                     break
                 await asyncio.sleep(0.1)
                 
             return {
-                "video_url": video_url,
+                "video_url": self.video_url,
                 "account_name": account_name.strip(),
                 "username": username.strip(),
                 "description": description.strip()
@@ -81,5 +97,3 @@ async def extract_video_info(twitter_url: str):
         except Exception as e:
             print(f"    Error during extraction: {e}")
             return None
-        finally:
-            await browser.close()
