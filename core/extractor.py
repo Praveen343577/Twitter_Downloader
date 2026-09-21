@@ -8,7 +8,7 @@ class VideoExtractor:
         self.playwright = None
         self.browser = None
         self.page = None
-        self.video_url = None
+        self.video_urls = []
 
     async def start(self):
         self.playwright = await async_playwright().start()
@@ -32,7 +32,7 @@ class VideoExtractor:
             parsed_url = urlparse(request.url)
             params = parse_qs(parsed_url.query)
             if "url" in params:
-                self.video_url = params["url"][0]
+                self.video_urls.append(params["url"][0])
             # Abort so Playwright doesn't download it
             await route.abort()
         else:
@@ -43,8 +43,9 @@ class VideoExtractor:
         Inputs the twitter URL, and intercepts
         the proxy request to extract the direct Twitter CDN video URL.
         Also extracts metadata (account name, username, description).
+        Supports extracting multiple videos from a single link.
         """
-        self.video_url = None
+        self.video_urls = []
         
         try:
             # Clear the input field completely before filling
@@ -64,7 +65,7 @@ class VideoExtractor:
                 
                 # Poll for up to 15 seconds
                 for _ in range(30):
-                    if await hd_button.is_visible():
+                    if await hd_button.first.is_visible():
                         success = True
                         break
                         
@@ -100,18 +101,25 @@ class VideoExtractor:
                 
             print(f"    Extracted Info - Name: {account_name}, Username: {username}")
             
-            print("    Triggering download to intercept URL...")
-            # Click it to trigger the proxy request
-            await hd_button.click()
+            print("    Triggering download to intercept URL(s)...")
+            
+            # Click all HD buttons found to trigger multiple proxy requests
+            button_count = await hd_button.count()
+            print(f"    Found {button_count} video(s) to process.")
+            
+            for i in range(button_count):
+                button = hd_button.nth(i)
+                await button.wait_for(state="visible")
+                await button.click()
             
             # Wait for the interception to populate the variables
             for _ in range(50):
-                if self.video_url:
+                if len(self.video_urls) >= button_count:
                     break
                 await asyncio.sleep(0.1)
                 
             return {
-                "video_url": self.video_url,
+                "video_urls": self.video_urls,
                 "account_name": account_name.strip(),
                 "username": username.strip(),
                 "description": description.strip()
