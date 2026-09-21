@@ -38,24 +38,31 @@ async def process_links():
                 print("    Link already downloaded. Skipping...")
                 continue
             
-            # 1. Extract direct video URL and metadata
+            # 1. Extract direct video URLs and metadata
             info = await extractor.extract_video_info(link)
             
-            if not info or not info.get("video_url"):
+            if not info or not info.get("video_urls"):
                 print("    Failed to extract video info. Skipping...")
                 insert_record(link, None, None, None, config.STATUS_FAILED)
                 continue
                 
-            print(f"    Successfully extracted direct URL.")
+            video_urls = info["video_urls"]
+            print(f"    Successfully extracted {len(video_urls)} direct URL(s).")
             
             # 2. Get organized filepath using project utilities
             username_clean = info["username"].replace("@", "")
-            filepath = get_next_filepath(username_clean, ".mp4")
             
-            # 3. Download the video file
-            success = download_file(info["video_url"], filepath)
+            all_success = True
             
-            if success:
+            # 3. Download all video files
+            for idx, v_url in enumerate(video_urls, 1):
+                filepath = get_next_filepath(username_clean, ".mp4")
+                print(f"    Downloading video {idx}/{len(video_urls)} -> {filepath}")
+                success = download_file(v_url, filepath)
+                if not success:
+                    all_success = False
+            
+            if all_success:
                 insert_record(
                     url=link,
                     account_name=info["account_name"],
