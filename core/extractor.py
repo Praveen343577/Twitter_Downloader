@@ -53,13 +53,36 @@ class VideoExtractor:
             # Input the twitter URL
             await self.page.fill(config.INPUT_SELECTOR, twitter_url)
             
-            # Click Fetch
-            await self.page.click(config.SUBMIT_SELECTOR)
-            
-            print("    Waiting for video card to load...")
-            # Wait for the HD quality button to appear
             hd_button = self.page.locator(config.BEST_QUALITY_SELECTOR)
-            await hd_button.wait_for(state="visible", timeout=15000)
+            error_locator = self.page.locator(".error-glow")
+            
+            success = False
+            for attempt in range(5):
+                # Click Fetch
+                await self.page.click(config.SUBMIT_SELECTOR)
+                print(f"    [Attempt {attempt+1}/5] Waiting for video card to load...")
+                
+                # Poll for up to 15 seconds
+                for _ in range(30):
+                    if await hd_button.is_visible():
+                        success = True
+                        break
+                        
+                    if await error_locator.is_visible():
+                        print("    Website returned 'post doesn't exist', preparing to retry...")
+                        break
+                        
+                    await asyncio.sleep(0.5)
+                    
+                if success:
+                    break
+                    
+                if attempt < 4:
+                    await asyncio.sleep(1)
+                    
+            if not success:
+                print("    Failed to load video card after 5 attempts.")
+                return None
             
             # Extract metadata using config selectors
             account_name = await self.page.locator(config.ACCOUNT_NAME_SELECTOR).first.inner_text()
