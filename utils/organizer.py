@@ -3,25 +3,20 @@ import re
 from datetime import datetime
 from config import DOWNLOADS_DIR
 
-def get_next_filepath(account_name: str, extension: str) -> str:
+def get_next_n(account_name: str) -> int:
     """
-    Scans the target directory and calculates the next sequential filepath.
-    Format: YYYY_MM_DD accountname N.ext
-    N increments globally for the date/account string, irrespective of file extension.
+    Scans the target directory and calculates the next sequential number.
+    Looks for both video (vN) and thumbnail (pN) formats.
     """
     os.makedirs(DOWNLOADS_DIR, exist_ok=True)
     
     current_date = datetime.now().strftime("%Y_%m_%d")
-    
-    # Escape account name to prevent regex injection/errors from special characters
     escaped_account = re.escape(account_name)
     
-    # Regex targets the exact structure, capturing N before any extension
-    pattern = re.compile(rf"^{current_date} {escaped_account} (\d+)\..+$")
+    # Matches YYYY_MM_DD account_name vN.ext or pN.ext
+    pattern = re.compile(rf"^{current_date} {escaped_account} [vp](\d+)\..+$")
     
     max_n = 0
-    
-    # Evaluate existing directory state
     for filename in os.listdir(DOWNLOADS_DIR):
         match = pattern.match(filename)
         if match:
@@ -29,11 +24,14 @@ def get_next_filepath(account_name: str, extension: str) -> str:
             if n_value > max_n:
                 max_n = n_value
                 
-    next_n = max_n + 1
+    return max_n + 1
+
+def generate_filepaths(account_name: str, next_n: int, thumb_ext: str = ".jpg"):
+    current_date = datetime.now().strftime("%Y_%m_%d")
+    v_name = f"{current_date} {account_name} v{next_n}.mp4"
+    t_name = f"{current_date} {account_name} p{next_n}{thumb_ext}"
     
-    # Normalize extension format
-    if not extension.startswith("."):
-        extension = f".{extension}"
-        
-    new_filename = f"{current_date} {account_name} {next_n}{extension}"
-    return os.path.join(DOWNLOADS_DIR, new_filename)
+    return (
+        os.path.join(DOWNLOADS_DIR, v_name),
+        os.path.join(DOWNLOADS_DIR, t_name)
+    )
