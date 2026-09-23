@@ -111,6 +111,17 @@ class VideoExtractor:
                 button = hd_button.nth(i)
                 await button.wait_for(state="visible")
                 await button.click()
+                
+                # Handle the potential "Follow me on X" popup
+                popup_download_btn = self.page.locator('div[role="dialog"] button.quality-btn-primary:has-text("Download")')
+                try:
+                    # Wait up to 2 seconds for the popup to appear
+                    await popup_download_btn.wait_for(state="visible", timeout=2000)
+                    print("    Popup detected, clicking download button inside popup...")
+                    await popup_download_btn.click()
+                except Exception:
+                    # No popup appeared within timeout, proceed as usual
+                    pass
             
             # Wait for the interception to populate the variables
             for _ in range(50):
