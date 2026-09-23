@@ -100,15 +100,6 @@ class VideoExtractor:
             account_name = await self.page.locator(config.ACCOUNT_NAME_SELECTOR).first.inner_text()
             username = await self.page.locator(config.USERNAME_SELECTOR).first.inner_text()
             
-            # Extract thumbnails
-            thumb_locator = self.page.locator(".group.relative.overflow-hidden.rounded-2xl img")
-            thumb_urls = []
-            thumb_count = await thumb_locator.count()
-            for i in range(thumb_count):
-                src = await thumb_locator.nth(i).get_attribute("src")
-                if src:
-                    thumb_urls.append(src)
-            
             # Check if description exists to avoid waiting; use a 5-second timeout if it does
             desc_locator = self.page.locator(config.DESCRIPTION_SELECTOR)
             if await desc_locator.count() > 0:
@@ -151,7 +142,6 @@ class VideoExtractor:
                 
             return {
                 "video_urls": self.video_urls,
-                "thumb_urls": thumb_urls,
                 "account_name": account_name.strip(),
                 "username": username.strip(),
                 "description": description.strip()
