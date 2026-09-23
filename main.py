@@ -5,9 +5,8 @@ from core.extractor import VideoExtractor
 from core.downloader import download_file
 import config
 from utils.sanitizer import sanitize_link
-from utils.organizer import get_next_n, generate_filepaths
+from utils.organizer import get_next_filepath
 from db.database import init_db, is_downloaded, insert_record
-from urllib.parse import urlparse
 
 async def process_links():
     init_db()
@@ -47,38 +46,21 @@ async def process_links():
                 insert_record(link, None, None, None, config.STATUS_FAILED)
                 continue
                 
-            video_urls = info.get("video_urls", [])
-            thumb_urls = info.get("thumb_urls", [])
-            print(f"    Successfully extracted {len(video_urls)} direct URL(s) and {len(thumb_urls)} thumbnail(s).")
+            video_urls = info["video_urls"]
+            print(f"    Successfully extracted {len(video_urls)} direct URL(s).")
             
             # 2. Get organized filepath using project utilities
             username_clean = info["username"].replace("@", "")
             
             all_success = True
             
-            # 3. Download all video and thumbnail files
-            for idx, v_url in enumerate(video_urls):
-                next_n = get_next_n(username_clean)
-                
-                t_ext = ".jpg"
-                if idx < len(thumb_urls):
-                    path = urlparse(thumb_urls[idx]).path
-                    ext = os.path.splitext(path)[1]
-                    if ext:
-                        t_ext = ext
-                        
-                video_filepath, thumb_filepath = generate_filepaths(username_clean, next_n, t_ext)
-                
-                print(f"    Downloading video {idx+1}/{len(video_urls)} -> {video_filepath}")
-                v_success = download_file(v_url, video_filepath)
-                if not v_success:
+            # 3. Download all video files
+            for idx, v_url in enumerate(video_urls, 1):
+                filepath = get_next_filepath(username_clean, ".mp4")
+                print(f"    Downloading video {idx}/{len(video_urls)} -> {filepath}")
+                success = download_file(v_url, filepath)
+                if not success:
                     all_success = False
-                    
-                if idx < len(thumb_urls):
-                    print(f"    Downloading thumbnail {idx+1}/{len(thumb_urls)} -> {thumb_filepath}")
-                    t_success = download_file(thumb_urls[idx], thumb_filepath)
-                    if not t_success:
-                        all_success = False
             
             if all_success:
                 insert_record(
