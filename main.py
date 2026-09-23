@@ -35,15 +35,17 @@ async def process_links():
             print(f"    URL: {link}")
             
             if is_downloaded(link):
-                print("    Link already downloaded. Skipping...")
+                print("    ✅ Link already downloaded. Skipping...")
                 continue
             
             # 1. Extract direct video URLs and metadata
             info = await extractor.extract_video_info(link)
             
             if not info or not info.get("video_urls"):
-                print("    Failed to extract video info. Skipping...")
+                print("    ❌ Failed to extract video info. Skipping...")
                 insert_record(link, None, None, None, config.STATUS_FAILED)
+                with open(config.FAILED_FILE, "a") as f:
+                    f.write(f"{raw_link}\n")
                 continue
                 
             video_urls = info["video_urls"]
@@ -70,7 +72,7 @@ async def process_links():
                     description=info["description"],
                     status=config.STATUS_SUCCESS
                 )
-                print("    Link processed successfully.")
+                print("    ✅ Link processed successfully.")
             else:
                 insert_record(
                     url=link,
@@ -80,6 +82,8 @@ async def process_links():
                     status=config.STATUS_FAILED
                 )
                 print("    Link processing failed during download.")
+                with open(config.FAILED_FILE, "a") as f:
+                    f.write(f"{raw_link}\n")
                 
             # Optional anti-bot delay
             if i < len(links):
