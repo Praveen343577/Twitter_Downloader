@@ -11,9 +11,20 @@ class VideoExtractor:
         self.video_urls = []
 
     async def start(self):
+        import ctypes
+        user32 = ctypes.windll.user32
+        screen_width = user32.GetSystemMetrics(0)
+        screen_height = user32.GetSystemMetrics(1)
+        half_width = screen_width // 2
+
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=False)
-        self.page = await self.browser.new_page()
+        
+        args = [
+            f"--window-position=0,0",
+            f"--window-size={half_width},{screen_height}"
+        ]
+        self.browser = await self.playwright.chromium.launch(headless=False, args=args)
+        self.page = await self.browser.new_page(no_viewport=True)
         
         # Intercept all requests to catch the /api/proxy call
         await self.page.route("**/*", self.handle_request)
