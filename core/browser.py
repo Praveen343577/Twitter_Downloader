@@ -15,11 +15,12 @@ def init_browser(playwright: Playwright) -> tuple[BrowserContext, Page]:
     
     context = playwright.chromium.launch_persistent_context(
         user_data_dir=USER_DATA_DIR,
-        headless=False,
+        headless=True,
         accept_downloads=True,
         viewport={"width": 1920, "height": 1080},
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         args=[
+            "--headless=new",
             "--disable-blink-features=AutomationControlled",
             "--disable-infobars"
         ]
