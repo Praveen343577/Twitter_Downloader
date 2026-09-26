@@ -39,12 +39,19 @@ class VideoExtractor:
             await self.playwright.stop()
 
     async def handle_request(self, route, request):
-        if "/api/proxy" in request.url:
-            parsed_url = urlparse(request.url)
+        url = request.url
+        if "video.twimg.com" in url and ".mp4" in url:
+            if url not in self.video_urls:
+                self.video_urls.append(url)
+            # Abort so Playwright doesn't download it
+            await route.abort()
+        elif "/api/proxy" in url:
+            parsed_url = urlparse(url)
             params = parse_qs(parsed_url.query)
             if "url" in params:
-                self.video_urls.append(params["url"][0])
-            # Abort so Playwright doesn't download it
+                video_url = params["url"][0]
+                if video_url not in self.video_urls:
+                    self.video_urls.append(video_url)
             await route.abort()
         else:
             await route.continue_()
