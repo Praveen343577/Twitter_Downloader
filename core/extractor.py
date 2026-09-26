@@ -41,8 +41,20 @@ class VideoExtractor:
     async def handle_request(self, route, request):
         url = request.url
         if "video.twimg.com" in url and ".mp4" in url:
-            if url not in self.video_urls:
+            parsed_req = urlparse(url)
+            base_req_url = f"{parsed_req.scheme}://{parsed_req.netloc}{parsed_req.path}"
+            
+            already_exists = False
+            for existing_url in self.video_urls:
+                parsed_ext = urlparse(existing_url)
+                base_ext_url = f"{parsed_ext.scheme}://{parsed_ext.netloc}{parsed_ext.path}"
+                if base_req_url == base_ext_url:
+                    already_exists = True
+                    break
+            
+            if not already_exists:
                 self.video_urls.append(url)
+                
             # Abort so Playwright doesn't download it
             await route.abort()
         elif "/api/proxy" in url:
@@ -63,8 +75,6 @@ class VideoExtractor:
         Also extracts metadata (account name, username, description).
         Supports extracting multiple videos from a single link.
         """
-        self.video_urls = []
-        
         try:
             # Clear the input field completely before filling
             await self.page.fill(config.INPUT_SELECTOR, "")
@@ -120,6 +130,9 @@ class VideoExtractor:
             print(f"    Extracted Info - Name: {account_name}, Username: {username}")
             
             print("    Triggering download to intercept URL(s)...")
+            
+            # Clear any preview videos captured while waiting for the result card
+            self.video_urls = []
             
             # Click all HD buttons found to trigger multiple proxy requests
             button_count = await hd_button.count()
