@@ -55,8 +55,14 @@ class VideoExtractor:
             if not already_exists:
                 self.video_urls.append(url)
                 
-            # Abort so Playwright doesn't download it
-            await route.abort()
+            # Fulfill the request with an empty 200 OK so the site's JS thinks the download succeeded
+            # and does not attempt to retry with a fallback URL.
+            headers = {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*"
+            }
+            await route.fulfill(status=200, headers=headers, body=b"")
         elif "/api/proxy" in url:
             parsed_url = urlparse(url)
             params = parse_qs(parsed_url.query)
