@@ -55,14 +55,14 @@ class VideoExtractor:
             if not already_exists:
                 self.video_urls.append(url)
                 
-            # Fulfill the request with an empty 200 OK so the site's JS thinks the download succeeded
-            # and does not attempt to retry with a fallback URL.
+            # Fulfill the request with a 404 Not Found so the site's JS cleanly fails
+            # without triggering network-level retries or creating 0-byte blob downloads.
             headers = {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, OPTIONS",
                 "Access-Control-Allow-Headers": "*"
             }
-            await route.fulfill(status=200, headers=headers, body=b"")
+            await route.fulfill(status=404, headers=headers, body=b"")
         elif "/api/proxy" in url:
             parsed_url = urlparse(url)
             params = parse_qs(parsed_url.query)
