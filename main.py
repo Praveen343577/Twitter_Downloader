@@ -46,6 +46,12 @@ async def process_links():
                 insert_record(link, None, None, None, config.STATUS_FAILED)
                 with open(config.FAILED_FILE, "a") as f:
                     f.write(f"{raw_link}\n")
+                    
+                if i < len(links):
+                    delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX) * 3
+                    print(f"\n    Sleeping for {delay:.2f} seconds (penalty delay) before next link...")
+                    await asyncio.sleep(delay)
+                    
                 continue
                 
             video_urls = info["video_urls"]
