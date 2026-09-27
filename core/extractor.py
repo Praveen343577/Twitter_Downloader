@@ -119,10 +119,10 @@ class VideoExtractor:
             error_locator = self.page.locator(".error-glow")
             
             success = False
-            for attempt in range(5):
+            for attempt in range(3):
                 # Click Fetch
                 await self.page.click(config.SUBMIT_SELECTOR)
-                print(f"    [Attempt {attempt+1}/5] Waiting for video card to load...")
+                print(f"    [Attempt {attempt+1}/3] Waiting for video card to load...")
                 
                 # Poll for up to 15 seconds
                 for _ in range(30):
@@ -139,11 +139,11 @@ class VideoExtractor:
                 if success:
                     break
                     
-                if attempt < 4:
+                if attempt < 2:
                     await asyncio.sleep(1)
                     
             if not success:
-                print("    Failed to load video card after 5 attempts.")
+                print("    Failed to load video card after 3 attempts.")
                 return None
             
             # Extract metadata using config selectors
