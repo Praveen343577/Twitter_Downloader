@@ -40,15 +40,24 @@ class VideoExtractor:
 
     async def handle_request(self, route, request):
         url = request.url
-        if "video.twimg.com" in url and ".mp4" in url:
-            parsed_req = urlparse(url)
-            base_req_url = f"{parsed_req.scheme}://{parsed_req.netloc}{parsed_req.path}"
+        parsed_url_obj = urlparse(url)
+        
+        if "video.twimg.com" in parsed_url_obj.netloc and ".mp4" in parsed_url_obj.path:
+            parsed_req = parsed_url_obj
+            req_filename = parsed_req.path.split('/')[-1]
             
             already_exists = False
             for existing_url in self.video_urls:
                 parsed_ext = urlparse(existing_url)
-                base_ext_url = f"{parsed_ext.scheme}://{parsed_ext.netloc}{parsed_ext.path}"
-                if base_req_url == base_ext_url:
+                
+                # If existing_url is a proxy url, extract the embedded URL to compare filenames
+                if "/api/proxy" in parsed_ext.path:
+                    params = parse_qs(parsed_ext.query)
+                    if "url" in params:
+                        parsed_ext = urlparse(params["url"][0])
+                        
+                ext_filename = parsed_ext.path.split('/')[-1]
+                if req_filename == ext_filename:
                     already_exists = True
                     break
             
@@ -63,13 +72,31 @@ class VideoExtractor:
                 "Access-Control-Allow-Headers": "*"
             }
             await route.fulfill(status=404, headers=headers, body=b"")
-        elif "/api/proxy" in url:
-            parsed_url = urlparse(url)
-            params = parse_qs(parsed_url.query)
+        elif "/api/proxy" in parsed_url_obj.path:
+            params = parse_qs(parsed_url_obj.query)
             if "url" in params:
                 video_url = params["url"][0]
-                if video_url not in self.video_urls:
-                    self.video_urls.append(video_url)
+                
+                parsed_req = urlparse(video_url)
+                req_filename = parsed_req.path.split('/')[-1]
+                
+                already_exists = False
+                for existing_url in self.video_urls:
+                    parsed_ext = urlparse(existing_url)
+                    
+                    # Extract embedded URL if the existing one is a proxy URL
+                    if "/api/proxy" in parsed_ext.path:
+                        ext_params = parse_qs(parsed_ext.query)
+                        if "url" in ext_params:
+                            parsed_ext = urlparse(ext_params["url"][0])
+                            
+                    ext_filename = parsed_ext.path.split('/')[-1]
+                    if req_filename == ext_filename:
+                        already_exists = True
+                        break
+                        
+                if not already_exists:
+                    self.video_urls.append(url)  # Append the proxy url
             await route.abort()
         else:
             await route.continue_()
@@ -137,14 +164,15 @@ class VideoExtractor:
             
             print("    Triggering download to intercept URL(s)...")
             
-            # Clear any preview videos captured while waiting for the result card
-            self.video_urls = []
+            final_urls = []
             
-            # Click all HD buttons found to trigger multiple proxy requests
+            # Click all HD buttons sequentially to capture exactly one URL per button
             button_count = await hd_button.count()
             print(f"    Found {button_count} video(s) to process.")
             
             for i in range(button_count):
+                self.video_urls = []
+                
                 button = hd_button.nth(i)
                 await button.wait_for(state="visible")
                 await button.click()
@@ -160,14 +188,17 @@ class VideoExtractor:
                     # No popup appeared within timeout, proceed as usual
                     pass
             
-            # Wait for the interception to populate the variables
-            for _ in range(50):
-                if len(self.video_urls) >= button_count:
-                    break
-                await asyncio.sleep(0.1)
+                # Wait for the interception to capture the URL for this specific video
+                for _ in range(50):
+                    if len(self.video_urls) >= 1:
+                        break
+                    await asyncio.sleep(0.1)
+                    
+                if self.video_urls:
+                    final_urls.append(self.video_urls[0])
                 
             return {
-                "video_urls": self.video_urls,
+                "video_urls": final_urls,
                 "account_name": account_name.strip(),
                 "username": username.strip(),
                 "description": description.strip()
