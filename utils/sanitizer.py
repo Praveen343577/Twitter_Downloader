@@ -11,6 +11,4 @@ def sanitize_link(raw_link: str) -> str:
     if link.endswith('/'):
         link = link[:-1]
         
-
-    
     return link
