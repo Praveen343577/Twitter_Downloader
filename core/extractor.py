@@ -140,7 +140,7 @@ class VideoExtractor:
                     break
                     
                 if attempt < 2:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(2.5)
                     
             if not success:
                 print("    Failed to load video card after 3 attempts.")
