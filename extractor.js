@@ -7,8 +7,8 @@
     console.log("Extraction started. Keep tab focused...");
 
     const timer = setInterval(() => {
-        document.querySelectorAll('a[href*="/status/"]').forEach(a => {
-            const cleanUrl = a.href.split('/photo/')[0].split('/video/')[0].split('?')[0];
+        document.querySelectorAll('a[href*="/status/"]').forEach(el => {
+            const cleanUrl = el.href.split('/photo/')[0].split('/video/')[0].split('/analytics')[0].split('?')[0];
             links.add(cleanUrl);
         });
         
