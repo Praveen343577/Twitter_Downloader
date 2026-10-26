@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────
 #  Python
 # ─────────────────────────────────────────────
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.pyo
@@ -10,11 +10,11 @@ __pycache__/
 # ─────────────────────────────────────────────
 #  Virtual Environments
 # ─────────────────────────────────────────────
-venv/
-.venv/
-env/
-.env/
-ENV/
+**/venv/
+**/.venv/
+**/env/
+**/.env/
+**/ENV/
 
 # ─────────────────────────────────────────────
 #  Distribution / Packaging
@@ -38,8 +38,9 @@ data/tracker.db
 data/failed.txt
 
 # Input links file – keep template only, not personal URLs
-# Comment this line out if you want to track links.txt in git
+# Comment these lines out if you want to track links.txt in git
 data/links.txt
+TwttrVdDwnldr/links.txt
 
 # ─────────────────────────────────────────────
 #  Downloaded Media
@@ -81,3 +82,12 @@ logs/
 .coverage
 htmlcov/
 .tox/
+
+# ─────────────────────────────────────────────
+#  Node.js (extractor.js)
+# ─────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
