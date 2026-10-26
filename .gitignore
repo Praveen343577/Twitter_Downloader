@@ -33,6 +33,10 @@ data/browser_session/
 
 # SQLite tracker database
 data/tracker.db
+TwttrVdDwnldr/downloads.db
+
+# TwttrVdDwnldr downloaded media folder
+TwttrVdDwnldr/Twitter/
 
 # Failed-links log (re-generated each run)
 data/failed.txt
