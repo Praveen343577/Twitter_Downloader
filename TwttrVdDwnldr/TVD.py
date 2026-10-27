@@ -119,7 +119,8 @@ def process_links():
                 else:
                     status = 'FAILED'
 
-            except Exception:
+            except Exception as e:
+                print(f"\n  ERROR: {e}")
                 status = 'FAILED'
 
             # Print final status line
