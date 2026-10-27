@@ -66,6 +66,9 @@ def process_links():
             if not account_name:
                 continue
 
+            downloaded_bytes = 0
+            total_bytes = 0
+
             try:
                 page.goto("https://twittervideodownloader.com/en/")
                 page.wait_for_selector("#tweetURL", state="visible")
@@ -100,17 +103,34 @@ def process_links():
                     # Direct binary stream via requests
                     response = requests.get(target_url, stream=True)
                     response.raise_for_status()
-                    
+
+                    total_bytes = int(response.headers.get('content-length', 0))
+                    total_mb = total_bytes / (1024 * 1024) if total_bytes else None
+
                     with open(filepath, 'wb') as file:
                         for chunk in response.iter_content(chunk_size=8192):
                             file.write(chunk)
-                            
+                            downloaded_bytes += len(chunk)
+                            dl_mb = downloaded_bytes / (1024 * 1024)
+                            size_str = f"{dl_mb:.2f}mb / {total_mb:.2f}mb" if total_mb else f"{dl_mb:.2f}mb / ?.??mb"
+                            print(f"\rDownloading : {link}    {size_str}", end='', flush=True)
+
                     status = 'SUCCESS'
                 else:
                     status = 'FAILED'
 
             except Exception:
                 status = 'FAILED'
+
+            # Print final status line
+            dl_mb = downloaded_bytes / (1024 * 1024)
+            if total_bytes > 0:
+                total_mb_str = f"{total_bytes / (1024 * 1024):.2f}mb"
+                print(f"\rDownloading : {link}    {dl_mb:.2f}mb / {total_mb_str}    {status}")
+            elif downloaded_bytes > 0:
+                print(f"\rDownloading : {link}    {dl_mb:.2f}mb    {status}")
+            else:
+                print(f"Downloading : {link}    {status}")
 
             date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("""
