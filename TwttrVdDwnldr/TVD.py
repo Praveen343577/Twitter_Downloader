@@ -5,9 +5,15 @@ import requests
 from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-DB_NAME = "downloads.db"
-DOWNLOAD_DIR = "Twitter"
+DB_NAME    = "downloads.db"
 LINKS_FILE = "links.txt"
+
+# ── Set your desired download folder here ──────────────────────────────────────
+# Accepts absolute path  →  r"D:\Videos\Twitter"
+# or relative path       →  "Twitter"  (folder created next to the script)
+DOWNLOAD_DIR = "Twitter"
+# ───────────────────────────────────────────────────────────────────────────────
+
 
 def setup_environment():
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
