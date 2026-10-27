@@ -7,11 +7,12 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 DB_NAME    = "downloads.db"
 LINKS_FILE = "links.txt"
+FAILED_FILE = os.path.join(os.path.dirname(os.path.abspath(LINKS_FILE)), "failed.txt")
 
 # ── Set your desired download folder here ──────────────────────────────────────
 # Accepts absolute path  →  r"D:\Videos\Twitter"
 # or relative path       →  "Twitter"  (folder created next to the script)
-DOWNLOAD_DIR = "Twitter"
+DOWNLOAD_DIR = r"G:\New folder 3"
 # ───────────────────────────────────────────────────────────────────────────────
 
 
@@ -148,6 +149,11 @@ def process_links():
                 download_date = excluded.download_date
             """, (account_name, link, status, date_str))
             conn.commit()
+
+            # Append to failed.txt if download did not succeed
+            if status == 'FAILED':
+                with open(FAILED_FILE, 'a') as ff:
+                    ff.write(link + '\n')
 
         browser.close()
     conn.close()

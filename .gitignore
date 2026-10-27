@@ -34,12 +34,14 @@ data/browser_session/
 # SQLite tracker database
 data/tracker.db
 TwttrVdDwnldr/downloads.db
+TwttrVdDwnldr/downloads_error.db
 
 # TwttrVdDwnldr downloaded media folder
 TwttrVdDwnldr/Twitter/
 
 # Failed-links log (re-generated each run)
 data/failed.txt
+TwttrVdDwnldr/failed.txt
 
 # Input links file – keep template only, not personal URLs
 # Comment these lines out if you want to track links.txt in git
