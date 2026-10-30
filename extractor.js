@@ -7,7 +7,6 @@
     const INTERVAL_MS = 1500; 
     const MAX_RETRIES = 6;
 
-    console.log("Extraction started. Keep tab focused...");
 
     let scroller = setInterval(() => {
         document.querySelectorAll('a[href*="/status/"]').forEach(el => {
