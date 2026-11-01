@@ -1,5 +1,7 @@
 import os
 import re
+import time
+import random
 import sqlite3
 import requests
 from datetime import datetime
@@ -244,6 +246,11 @@ def process_links():
             if status == 'FAILED':
                 with open(FAILED_FILE, 'a') as ff:
                     ff.write(link + '\n')
+
+            # Random delay between links to avoid rate-limiting.
+            delay = random.uniform(3, 6)
+            print(f"  [waiting {delay:.1f}s before next link]")
+            time.sleep(delay)
 
         browser.close()
     conn.close()
