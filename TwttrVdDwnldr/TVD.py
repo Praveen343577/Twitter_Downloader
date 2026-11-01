@@ -11,9 +11,8 @@ DB_NAME     = "downloads.db"
 LINKS_FILE  = "links.txt"
 FAILED_FILE = os.path.join(os.path.dirname(os.path.abspath(LINKS_FILE)), "failed.txt")
 
-# ── Set your desired download folder here ──────────────────────────────────────
+# Set your desired download folder here 
 DOWNLOAD_DIR = r"G:\New folder 3"
-# ───────────────────────────────────────────────────────────────────────────────
 
 AD_DOMAINS = (
     "doubleclick.net",
