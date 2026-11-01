@@ -155,7 +155,31 @@ def process_links():
                 page.click("#submitBtn")
                 dismiss_popups(page)
 
-                page.wait_for_selector(".card-body .d-grid.gap-3 a", timeout=30000)
+                # Race: either download links appear, or the site shows an error callout.
+                # wait_for_function polls until one of the two selectors is present in the DOM.
+                page.wait_for_function(
+                    """() =>
+                        document.querySelector('.card-body .d-grid.gap-3 a') !== null ||
+                        document.querySelector('.callout-danger') !== null
+                    """,
+                    timeout=30000,
+                )
+
+                # If the error callout appeared, skip this link immediately.
+                if page.query_selector(".callout-danger"):
+                    print(f"Downloading : {link}    SKIPPED (no video / site error)")
+                    date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("""
+                        INSERT INTO downloads (account_name, url, status, download_date)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(url) DO UPDATE SET
+                        status = excluded.status,
+                        download_date = excluded.download_date
+                    """, (account_name, link, 'FAILED', date_str))
+                    conn.commit()
+                    with open(FAILED_FILE, 'a') as ff:
+                        ff.write(link + '\n')
+                    continue
 
                 download_options = page.query_selector_all(".card-body .d-grid.gap-3 a")
                 highest_res_score = -1
