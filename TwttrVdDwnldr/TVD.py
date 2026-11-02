@@ -136,7 +136,8 @@ def process_links():
             result = cursor.fetchone()
             if result and result[0] == 'SUCCESS':
                 print(link)
-                print(f"    ALREADY EXIST")
+                print(f"\U0001f7e6 ALREADY EXIST")
+                print()
                 continue
 
             account_name = extract_account_name(link)
@@ -171,7 +172,8 @@ def process_links():
 
                 # If the error callout appeared, skip this link immediately.
                 if page.query_selector(".callout-danger"):
-                    print(f"    SKIPPED (no video / site error)")
+                    print(f"\U0001f7e8 SKIPPED (no video / site error)")
+                    print()
                     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute("""
                         INSERT INTO downloads (account_name, url, status, download_date)
@@ -216,7 +218,7 @@ def process_links():
                             downloaded_bytes += len(chunk)
                             dl_mb = downloaded_bytes / (1024 * 1024)
                             size_str = f"{dl_mb:.2f}mb / {total_mb:.2f}mb" if total_mb else f"{dl_mb:.2f}mb / ?.??mb"
-                            print(f"\r    {size_str}", end='', flush=True)
+                            print(f"\r[ {size_str} ]", end='', flush=True)
 
                     status = 'SUCCESS'
                 else:
@@ -225,13 +227,15 @@ def process_links():
             except Exception:
                 status = 'FAILED'
 
+            STATUS_ICON = {'SUCCESS': '\U0001f7e9', 'FAILED': '\U0001f7e5'}
             dl_mb = downloaded_bytes / (1024 * 1024)
             if total_bytes > 0:
                 total_mb_str = f"{total_bytes / (1024 * 1024):.2f}mb"
-                print(f"\r    {dl_mb:.2f}mb / {total_mb_str}")
+                print(f"\r[ {dl_mb:.2f}mb / {total_mb_str} ]")
             elif downloaded_bytes > 0:
-                print(f"\r    {dl_mb:.2f}mb")
-            print(f"    {status}")
+                print(f"\r[ {dl_mb:.2f}mb ]")
+            print(f"{STATUS_ICON.get(status, '\U0001f7e5')} {status}")
+            print()
 
             date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("""
@@ -249,7 +253,7 @@ def process_links():
 
             # Random delay between links to avoid rate-limiting.
             delay = random.uniform(3, 6)
-            print(f"  [waiting {delay:.1f}s before next link]")
+            print(f"[ waiting {delay:.1f}s ]")
             time.sleep(delay)
 
         browser.close()
