@@ -42,11 +42,13 @@ TwttrVdDwnldr/Twitter/
 # Failed-links log (re-generated each run)
 data/failed.txt
 TwttrVdDwnldr/failed.txt
+TwttrVdDwnldr/duplicated_links.txt
 
 # Input links file – keep template only, not personal URLs
 # Comment these lines out if you want to track links.txt in git
 data/links.txt
 TwttrVdDwnldr/links.txt
+TwttrVdDwnldr/unique_links.txt
 
 # ─────────────────────────────────────────────
 #  Downloaded Media
