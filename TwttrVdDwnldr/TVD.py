@@ -219,8 +219,7 @@ def process_links():
                 else:
                     status = 'FAILED'
 
-            except Exception as e:
-                print(f"\n  ERROR: {e}")
+            except Exception:
                 status = 'FAILED'
 
             dl_mb = downloaded_bytes / (1024 * 1024)
@@ -257,3 +256,6 @@ def process_links():
 
 if __name__ == "__main__":
     process_links()
+
+
+
