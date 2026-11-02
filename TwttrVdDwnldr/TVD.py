@@ -141,6 +141,7 @@ def process_links():
             if not account_name:
                 continue
 
+            print(link)
             downloaded_bytes = 0
             total_bytes = 0
 
@@ -168,7 +169,7 @@ def process_links():
 
                 # If the error callout appeared, skip this link immediately.
                 if page.query_selector(".callout-danger"):
-                    print(f"Downloading : {link}    SKIPPED (no video / site error)")
+                    print(f"    SKIPPED (no video / site error)")
                     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute("""
                         INSERT INTO downloads (account_name, url, status, download_date)
@@ -213,7 +214,7 @@ def process_links():
                             downloaded_bytes += len(chunk)
                             dl_mb = downloaded_bytes / (1024 * 1024)
                             size_str = f"{dl_mb:.2f}mb / {total_mb:.2f}mb" if total_mb else f"{dl_mb:.2f}mb / ?.??mb"
-                            print(f"\rDownloading : {link}    {size_str}", end='', flush=True)
+                            print(f"\r    {size_str}", end='', flush=True)
 
                     status = 'SUCCESS'
                 else:
@@ -225,11 +226,10 @@ def process_links():
             dl_mb = downloaded_bytes / (1024 * 1024)
             if total_bytes > 0:
                 total_mb_str = f"{total_bytes / (1024 * 1024):.2f}mb"
-                print(f"\rDownloading : {link}    {dl_mb:.2f}mb / {total_mb_str}    {status}")
+                print(f"\r    {dl_mb:.2f}mb / {total_mb_str}")
             elif downloaded_bytes > 0:
-                print(f"\rDownloading : {link}    {dl_mb:.2f}mb    {status}")
-            else:
-                print(f"Downloading : {link}    {status}")
+                print(f"\r    {dl_mb:.2f}mb")
+            print(f"    {status}")
 
             date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("""
