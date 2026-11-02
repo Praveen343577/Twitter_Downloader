@@ -16,3 +16,5 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         sys.exit(f"Usage: {sys.argv[0]} <input.txt> <output.txt>")
     deduplicate(sys.argv[1], sys.argv[2])
+
+# To run : python deduplicator.py duplicated_links.txt unique_links.txt 
