@@ -187,53 +187,68 @@ def process_links():
                         ff.write(link + '\n')
                     continue
 
-                download_options = page.query_selector_all(".card-body .d-grid.gap-3 a")
-                highest_res_score = -1
-                target_url = None
+                # Collect the best-resolution URL from each video card.
+                video_cards = page.query_selector_all("#download-section .card")
+                if not video_cards:
+                    video_cards = page.query_selector_all(".card-body")
 
-                for option in download_options:
-                    data_filename = option.get_attribute("data-filename")
-                    href = option.get_attribute("href")
+                video_urls = []
+                for card in video_cards:
+                    options = card.query_selector_all(".d-grid.gap-3 a")
+                    best_score, best_href = -1, None
+                    for opt in options:
+                        fname = opt.get_attribute("data-filename")
+                        href  = opt.get_attribute("href")
+                        if fname and href:
+                            score = extract_resolution(fname)
+                            if score > best_score:
+                                best_score, best_href = score, href
+                    if best_href:
+                        video_urls.append(best_href)
 
-                    if data_filename and href:
-                        res_score = extract_resolution(data_filename)
-                        if res_score > highest_res_score:
-                            highest_res_score = res_score
-                            target_url = href
+                multi = len(video_urls) > 1
 
-                if target_url:
+                for vid_idx, target_url in enumerate(video_urls, start=1):
                     n = get_next_n(cursor, account_name)
                     filename = f"{account_name} {n}.mp4"
                     filepath = os.path.join(DOWNLOAD_DIR, filename)
+                    prefix = f"Video {vid_idx}: " if multi else ""
+                    vid_dl_bytes = 0
+                    vid_total_bytes = 0
 
-                    response = requests.get(target_url, stream=True, timeout=60)
-                    response.raise_for_status()
+                    try:
+                        response = requests.get(target_url, stream=True, timeout=60)
+                        response.raise_for_status()
 
-                    total_bytes = int(response.headers.get('content-length', 0))
-                    total_mb = total_bytes / (1024 * 1024) if total_bytes else None
+                        vid_total_bytes = int(response.headers.get('content-length', 0))
+                        vid_total_mb = vid_total_bytes / (1024 * 1024) if vid_total_bytes else None
 
-                    with open(filepath, 'wb') as file:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            file.write(chunk)
-                            downloaded_bytes += len(chunk)
-                            dl_mb = downloaded_bytes / (1024 * 1024)
-                            size_str = f"{dl_mb:.2f}mb / {total_mb:.2f}mb" if total_mb else f"{dl_mb:.2f}mb / ?.??mb"
-                            print(f"\r[ {size_str} ]", end='', flush=True)
+                        with open(filepath, 'wb') as file:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                file.write(chunk)
+                                vid_dl_bytes += len(chunk)
+                                dl_mb = vid_dl_bytes / (1024 * 1024)
+                                size_str = f"{dl_mb:.2f}mb / {vid_total_mb:.2f}mb" if vid_total_mb else f"{dl_mb:.2f}mb / ?.??mb"
+                                print(f"\r[ {prefix}{size_str} ]", end='', flush=True)
 
-                    status = 'SUCCESS'
-                else:
-                    status = 'FAILED'
+                        dl_mb = vid_dl_bytes / (1024 * 1024)
+                        if vid_total_bytes > 0:
+                            print(f"\r[ {prefix}{dl_mb:.2f}mb / {vid_total_bytes / (1024*1024):.2f}mb ]")
+                        else:
+                            print(f"\r[ {prefix}{dl_mb:.2f}mb ]")
+
+                        downloaded_bytes += vid_dl_bytes
+
+                    except Exception:
+                        if multi:
+                            print(f"[ Video {vid_idx}: failed ]")
+
+                status = 'SUCCESS' if downloaded_bytes > 0 else 'FAILED'
 
             except Exception:
                 status = 'FAILED'
 
             STATUS_ICON = {'SUCCESS': '\U0001f7e9', 'FAILED': '\U0001f7e5'}
-            dl_mb = downloaded_bytes / (1024 * 1024)
-            if total_bytes > 0:
-                total_mb_str = f"{total_bytes / (1024 * 1024):.2f}mb"
-                print(f"\r[ {dl_mb:.2f}mb / {total_mb_str} ]")
-            elif downloaded_bytes > 0:
-                print(f"\r[ {dl_mb:.2f}mb ]")
             print(f"{STATUS_ICON.get(status, '\U0001f7e5')} {status}")
             print()
 
