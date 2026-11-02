@@ -265,3 +265,8 @@ if __name__ == "__main__":
 
 
 
+# Each Status Color Code Meaning :-
+    # 🟩 SUCCESS	
+    # 🟦 ALREADY EXIST	
+    # 🟨 SKIPPED	
+    # 🟥 FAILED	
