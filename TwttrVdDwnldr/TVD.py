@@ -135,6 +135,8 @@ def process_links():
             cursor.execute("SELECT status FROM downloads WHERE url = ?", (link,))
             result = cursor.fetchone()
             if result and result[0] == 'SUCCESS':
+                print(link)
+                print(f"    ALREADY EXIST")
                 continue
 
             account_name = extract_account_name(link)
