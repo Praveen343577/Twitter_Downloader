@@ -280,8 +280,9 @@ if __name__ == "__main__":
 
 
 
+
 # Each Status Color Code Meaning :-
-    # 🟩 SUCCESS	
-    # 🟦 ALREADY EXIST	
-    # 🟨 SKIPPED	
-    # 🟥 FAILED	
+    # 🟩 SUCCESS       : Video downloaded to disk and saved as SUCCESS in DB.
+    # 🟦 ALREADY EXIST : URL already marked SUCCESS in DB; skipped immediately.
+    # 🟨 SKIPPED       : Site error banner (no video, deleted, or private tweet); logged as FAILED in DB and failed.txt.
+    # 🟥 FAILED        : Page timeout, no valid video link found, or stream error; logged as FAILED in DB and failed.txt.
