@@ -115,6 +115,7 @@ def process_links():
 
     with open(LINKS_FILE, 'r') as f:
         links = [line.strip() for line in f if line.strip()]
+        stats = {"SUCCESS": 0, "FAILED": 0, "ALREADY EXIST": 0, "SKIPPED": 0}
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
@@ -135,6 +136,7 @@ def process_links():
             cursor.execute("SELECT status FROM downloads WHERE url = ?", (link,))
             result = cursor.fetchone()
             if result and result[0] == 'SUCCESS':
+                stats["ALREADY EXIST"] += 1
                 print(link)
                 print(f"\U0001f7e6 ALREADY EXIST")
                 print()
@@ -172,6 +174,7 @@ def process_links():
 
                 # If the error callout appeared, skip this link immediately.
                 if page.query_selector(".callout-danger"):
+                    stats["SKIPPED"] += 1
                     print(f"\U0001f7e8 SKIPPED (no video / site error)")
                     print()
                     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -248,6 +251,7 @@ def process_links():
             except Exception:
                 status = 'FAILED'
 
+            stats[status] += 1
             STATUS_ICON = {'SUCCESS': '\U0001f7e9', 'FAILED': '\U0001f7e5'}
             print(f"{STATUS_ICON.get(status, '\U0001f7e5')} {status}")
             print()
@@ -273,6 +277,14 @@ def process_links():
 
         browser.close()
     conn.close()
+
+    print(
+        f"TOTAL = {len(links)}, "
+        f"SUCCESS = {stats['SUCCESS']}, "
+        f"FAILED = {stats['FAILED']}, "
+        f"ALREADY EXIST = {stats['ALREADY EXIST']}, "
+        f"SKIPPED = {stats['SKIPPED']}"
+    )
 
 
 if __name__ == "__main__":
