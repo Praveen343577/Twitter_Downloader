@@ -286,7 +286,6 @@ def process_links():
         f"SKIPPED = {stats['SKIPPED']}"
     )
 
-
 if __name__ == "__main__":
     process_links()
 
