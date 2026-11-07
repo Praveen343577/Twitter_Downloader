@@ -1,6 +1,5 @@
 import os
 import re
-from datetime import datetime
 from config import DOWNLOADS_DIR
 
 def get_next_filepath(account_name: str, extension: str) -> str:
@@ -11,13 +10,11 @@ def get_next_filepath(account_name: str, extension: str) -> str:
     """
     os.makedirs(DOWNLOADS_DIR, exist_ok=True)
     
-    current_date = datetime.now().strftime("%Y_%m_%d")
-    
     # Escape account name to prevent regex injection/errors from special characters
     escaped_account = re.escape(account_name)
     
     # Regex targets the exact structure, capturing N before any extension
-    pattern = re.compile(rf"^{current_date} {escaped_account} (\d+)\..+$")
+    pattern = re.compile(rf"^{escaped_account} (\d+)\..+$")
     
     max_n = 0
     
@@ -35,5 +32,5 @@ def get_next_filepath(account_name: str, extension: str) -> str:
     if not extension.startswith("."):
         extension = f".{extension}"
         
-    new_filename = f"{current_date} {account_name} {next_n}{extension}"
+    new_filename = f"{account_name} {next_n}{extension}"
     return os.path.join(DOWNLOADS_DIR, new_filename)
