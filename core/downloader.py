@@ -10,7 +10,7 @@ def download_file(url: str, filepath: str):
         print("    Invalid URL or filepath provided to downloader.")
         return False
         
-    print(f"    Downloading to {filepath}...")
+    print(f"    Downloading to {filepath}")
     
     try:
         # Stream the download to avoid loading the whole file into memory

@@ -30,9 +30,9 @@ async def process_links():
     
     try:
         for i, raw_link in enumerate(links, 1):
-            print(f"\n--- Processing Link {i}/{len(links)} ---")
+            print(f"\nProcessing Link {i}/{len(links)}")
             link = sanitize_link(raw_link)
-            print(f"    URL: {link}")
+            print(f"URL:{link}")
             
             if is_downloaded(link):
                 print("    ✅ Link already downloaded. Skipping...")
