@@ -41,11 +41,14 @@ def setup_environment():
     return conn
 
 
-def extract_account_name(url):
-    match = re.search(r'https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status/\d+', url)
+def normalize_url(url):
+    match = re.search(r'https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status/(\d+)', url)
     if match:
-        return match.group(1)
-    return None
+        account_name = match.group(1)
+        tweet_id = match.group(2)
+        normalized_link = f"https://x.com/{account_name}/status/{tweet_id}"
+        return account_name, normalized_link
+    return None, None
 
 
 def get_next_n(cursor, account_name):
@@ -130,9 +133,14 @@ def process_links():
         )
 
         page = context.new_page()
-        page.on("dialog", lambda d: d.dismiss())
+        page.on("dialog", lambda d: d.dismiss(        ))
 
-        for link in links:
+        for raw_link in links:
+            account_name, link = normalize_url(raw_link)
+            
+            if not link:
+                continue
+
             cursor.execute("SELECT status FROM downloads WHERE url = ?", (link,))
             result = cursor.fetchone()
             if result and result[0] == 'SUCCESS':
@@ -140,10 +148,6 @@ def process_links():
                 print(link)
                 print(f"\U0001f7e6 ALREADY EXIST")
                 print()
-                continue
-
-            account_name = extract_account_name(link)
-            if not account_name:
                 continue
 
             print(link)
