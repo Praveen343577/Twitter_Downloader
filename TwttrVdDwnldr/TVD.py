@@ -220,6 +220,8 @@ def process_links():
                     vid_total_bytes = 0
 
                     try:
+                        # (connect_timeout, read_timeout) — 15s to connect, 5min between chunks
+                        # so multi-GB files don't fail from brief CDN stalls.
                         response = requests.get(target_url, stream=True, timeout=(15, 300))
                         response.raise_for_status()
 
@@ -243,6 +245,7 @@ def process_links():
                         downloaded_bytes += vid_dl_bytes
 
                     except Exception:
+                        # Remove partial/corrupt file so failed downloads don't leave junk on disk.
                         if os.path.exists(filepath):
                             os.remove(filepath)
                         if multi:
