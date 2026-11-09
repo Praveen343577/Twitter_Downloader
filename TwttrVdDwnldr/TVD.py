@@ -220,7 +220,7 @@ def process_links():
                     vid_total_bytes = 0
 
                     try:
-                        response = requests.get(target_url, stream=True, timeout=60)
+                        response = requests.get(target_url, stream=True, timeout=(15, 300))
                         response.raise_for_status()
 
                         vid_total_bytes = int(response.headers.get('content-length', 0))
@@ -243,6 +243,8 @@ def process_links():
                         downloaded_bytes += vid_dl_bytes
 
                     except Exception:
+                        if os.path.exists(filepath):
+                            os.remove(filepath)
                         if multi:
                             print(f"[ Video {vid_idx}: failed ]")
 
