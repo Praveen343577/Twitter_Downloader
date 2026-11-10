@@ -12,61 +12,66 @@ async def process_links():
     init_db()
     
     if not os.path.exists(config.LINKS_FILE):
-        print(f"Links file not found at {config.LINKS_FILE}")
+        print(f"Error: Links file not found at {config.LINKS_FILE}")
         return
         
     with open(config.LINKS_FILE, "r") as f:
         links = [line.strip() for line in f if line.strip()]
         
     if not links:
-        print(f"No links found in {config.LINKS_FILE}")
+        print(f"Error: No links found in {config.LINKS_FILE}")
         return
-        
-    print(f"Found {len(links)} links to process.")
+
+    total = len(links)
+    print(f"Twitter Downloader  ·  {total} link{'s' if total != 1 else ''} queued\n")
     
     extractor = VideoExtractor()
-    print("\nInitializing browser session...")
     await extractor.start()
     
+    skipped = 0
+    downloaded = 0
+    failed = 0
+
     try:
         for i, raw_link in enumerate(links, 1):
-            print(f"\nProcessing Link {i}/{len(links)}")
             link = sanitize_link(raw_link)
-            print(f"URL:{link}")
+            print(f"[{i}/{total}] {link}")
             
             if is_downloaded(link):
-                print("    ✅ Link already downloaded. Skipping...")
+                print("      ↳ Already downloaded, skipping.")
+                skipped += 1
                 continue
             
             # 1. Extract direct video URLs and metadata
             info = await extractor.extract_video_info(link)
             
             if not info or not info.get("video_urls"):
-                print("    ❌ Failed to extract video info. Skipping...")
+                print("      ↳ Failed to extract video info.")
+                print("      ✗ Failed\n")
+                failed += 1
                 insert_record(link, None, None, None, config.STATUS_FAILED)
                 with open(config.FAILED_FILE, "a") as f:
                     f.write(f"{raw_link}\n")
                     
-                if i < len(links):
+                if i < total:
                     delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX) * 3
-                    print(f"\n    Sleeping for {delay:.2f} seconds (penalty delay) before next link...")
                     await asyncio.sleep(delay)
                     
                 continue
                 
             video_urls = info["video_urls"]
-            print(f"    Successfully extracted {len(video_urls)} direct URL(s).")
-            
-            # 2. Get organized filepath using project utilities
             username_clean = info["username"].replace("@", "")
+            video_count = len(video_urls)
+
+            print(f"      ↳ {info['username']}  —  downloading {video_count} video{'s' if video_count != 1 else ''}")
             
             all_success = True
             
-            # 3. Download all video files
+            # 2. Download all video files
             for idx, v_url in enumerate(video_urls, 1):
                 filepath = get_next_filepath(username_clean, ".mp4")
-                print(f"    Downloading video {idx}/{len(video_urls)} -> {filepath}")
-                success = download_file(v_url, filepath)
+                filename = os.path.basename(filepath)
+                success = download_file(v_url, filepath, filename)
                 if not success:
                     all_success = False
             
@@ -78,7 +83,8 @@ async def process_links():
                     description=info["description"],
                     status=config.STATUS_SUCCESS
                 )
-                print("    ✅ Link processed successfully.")
+                downloaded += 1
+                print("      ✓ Done\n")
             else:
                 insert_record(
                     url=link,
@@ -87,19 +93,18 @@ async def process_links():
                     description=info["description"],
                     status=config.STATUS_FAILED
                 )
-                print("    Link processing failed during download.")
+                failed += 1
+                print("      ✗ Failed\n")
                 with open(config.FAILED_FILE, "a") as f:
                     f.write(f"{raw_link}\n")
                 
             # Optional anti-bot delay
-            if i < len(links):
+            if i < total:
                 delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX)
-                print(f"\n    Sleeping for {delay:.2f} seconds before next link...")
                 await asyncio.sleep(delay)
                 
-        print("\nAll operations completed.")
+        print(f"Finished.  {skipped} skipped · {downloaded} downloaded · {failed} failed")
     finally:
-        print("\nCleaning up and closing browser...")
         await extractor.stop()
 
 def main():
