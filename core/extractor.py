@@ -29,8 +29,8 @@ class VideoExtractor:
         # Intercept all requests to catch the /api/proxy call
         await self.page.route("**/*", self.handle_request)
         
-        print(f"    Navigating to {config.TARGET_URL}...")
         await self.page.goto(config.TARGET_URL)
+        print("Browser ready.\n")
 
     async def stop(self):
         if self.browser:
@@ -122,7 +122,6 @@ class VideoExtractor:
             for attempt in range(3):
                 # Click Fetch
                 await self.page.click(config.SUBMIT_SELECTOR)
-                print(f"    [Attempt {attempt+1}/3] Waiting for video card to load...")
                 
                 # Poll for up to 15 seconds
                 for _ in range(30):
@@ -131,7 +130,6 @@ class VideoExtractor:
                         break
                         
                     if await error_locator.is_visible():
-                        print("    Website returned 'post doesn't exist', preparing to retry...")
                         break
                         
                     await asyncio.sleep(0.5)
@@ -143,7 +141,7 @@ class VideoExtractor:
                     await asyncio.sleep(2.5)
                     
             if not success:
-                print("    Failed to load video card after 3 attempts.")
+                print(f"      ↳ Post not found after 3 attempts.")
                 return None
             
             # Extract metadata using config selectors
@@ -160,15 +158,11 @@ class VideoExtractor:
             else:
                 description = ""
                 
-            print(f"    Extracted Info - Name: {account_name}, Username: {username}")
-            
-            print("    Triggering download to intercept URL(s)...")
             
             final_urls = []
             
             # Click all HD buttons sequentially to capture exactly one URL per button
             button_count = await hd_button.count()
-            print(f"    Found {button_count} video(s) to process.")
             
             for i in range(button_count):
                 self.video_urls = []
@@ -182,7 +176,6 @@ class VideoExtractor:
                 try:
                     # Wait up to 2 seconds for the popup to appear
                     await popup_download_btn.wait_for(state="visible", timeout=2000)
-                    print("    Popup detected, clicking download button inside popup...")
                     await popup_download_btn.click()
                 except Exception:
                     # No popup appeared within timeout, proceed as usual
@@ -205,5 +198,5 @@ class VideoExtractor:
             }
                 
         except Exception as e:
-            print(f"    Error during extraction: {e}")
+            print(f"      ↳ Extraction error: {e}")
             return None
