@@ -38,7 +38,7 @@ async def process_links():
             print(f"[{i}/{total}] {link}")
             
             if is_downloaded(link):
-                print("      ↳ Already downloaded, skipping.\n")
+                print("        Already downloaded, skipping.\n")
                 skipped += 1
                 continue
             
@@ -46,7 +46,7 @@ async def process_links():
             info = await extractor.extract_video_info(link)
             
             if not info or not info.get("video_urls"):
-                print("      ↳ Failed to extract video info.")
+                print("        Failed to extract video info.")
                 print("      ✗ Failed\n")
                 failed += 1
                 insert_record(link, None, None, None, config.STATUS_FAILED)
@@ -63,7 +63,7 @@ async def process_links():
             username_clean = info["username"].replace("@", "")
             video_count = len(video_urls)
 
-            print(f"      ↳ {info['username']}  —  downloading {video_count} video{'s' if video_count != 1 else ''}")
+            print(f"        {info['username']}  —  downloading {video_count} video{'s' if video_count != 1 else ''}")
             
             all_success = True
             
