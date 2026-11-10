@@ -38,7 +38,7 @@ async def process_links():
             print(f"[{i}/{total}] {link}")
             
             if is_downloaded(link):
-                print("      ↳ Already downloaded, skipping.")
+                print("      ↳ Already downloaded, skipping.\n")
                 skipped += 1
                 continue
             
@@ -103,7 +103,7 @@ async def process_links():
                 delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX)
                 await asyncio.sleep(delay)
                 
-        print(f"Finished.  {skipped} skipped · {downloaded} downloaded · {failed} failed")
+        print(f"Finished - {downloaded} downloaded · {skipped} skipped · {failed} failed")
     finally:
         await extractor.stop()
 
