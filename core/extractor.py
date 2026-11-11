@@ -141,7 +141,7 @@ class VideoExtractor:
                     await asyncio.sleep(2.5)
                     
             if not success:
-                print(f"      ↳ Post not found after 3 attempts.")
+                print(f"        Post not found after 3 attempts.")
                 return None
             
             # Extract metadata using config selectors
