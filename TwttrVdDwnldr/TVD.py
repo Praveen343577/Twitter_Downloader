@@ -32,7 +32,8 @@ def setup_environment():
         CREATE TABLE IF NOT EXISTS downloads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             account_name TEXT,
-            url TEXT UNIQUE,
+            tweet_id TEXT UNIQUE,
+            url TEXT,
             status TEXT,
             download_date TEXT
         )
@@ -47,8 +48,8 @@ def normalize_url(url):
         account_name = match.group(1)
         tweet_id = match.group(2)
         normalized_link = f"https://x.com/{account_name}/status/{tweet_id}"
-        return account_name, normalized_link
-    return None, None
+        return account_name, tweet_id, normalized_link
+    return None, None, None
 
 
 def get_next_n(cursor, account_name):
