@@ -137,12 +137,12 @@ def process_links():
         page.on("dialog", lambda d: d.dismiss(        ))
 
         for raw_link in links:
-            account_name, link = normalize_url(raw_link)
+            account_name, tweet_id, link = normalize_url(raw_link)
             
             if not link:
                 continue
 
-            cursor.execute("SELECT status FROM downloads WHERE url = ?", (link,))
+            cursor.execute("SELECT status FROM downloads WHERE tweet_id = ?", (tweet_id,))
             result = cursor.fetchone()
             if result and result[0] == 'SUCCESS':
                 stats["ALREADY EXIST"] += 1
@@ -184,12 +184,12 @@ def process_links():
                     print()
                     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute("""
-                        INSERT INTO downloads (account_name, url, status, download_date)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT(url) DO UPDATE SET
+                        INSERT INTO downloads (account_name, tweet_id, url, status, download_date)
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(tweet_id) DO UPDATE SET
                         status = excluded.status,
                         download_date = excluded.download_date
-                    """, (account_name, link, 'FAILED', date_str))
+                    """, (account_name, tweet_id, link, 'FAILED', date_str))
                     conn.commit()
                     with open(FAILED_FILE, 'a') as ff:
                         ff.write(link + '\n')
@@ -268,12 +268,12 @@ def process_links():
 
             date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("""
-                INSERT INTO downloads (account_name, url, status, download_date) 
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(url) DO UPDATE SET 
+                INSERT INTO downloads (account_name, tweet_id, url, status, download_date) 
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(tweet_id) DO UPDATE SET 
                 status = excluded.status, 
                 download_date = excluded.download_date
-            """, (account_name, link, status, date_str))
+            """, (account_name, tweet_id, link, status, date_str))
             conn.commit()
 
             if status == 'FAILED':
