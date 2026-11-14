@@ -24,7 +24,7 @@ FAILED_FILE = os.path.join(DATA_DIR, "failed.txt")
 DB_FILE     = os.path.join(DATA_DIR, "tracker.db")
 
 # Output Path (external — outside project directory)
-DOWNLOADS_DIR = r"D:\Projects\Project_10\Twitter"
+DOWNLOADS_DIR = r""
 
 # Status Constants
 STATUS_SUCCESS  = "SUCCESS"

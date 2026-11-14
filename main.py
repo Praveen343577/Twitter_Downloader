@@ -103,7 +103,7 @@ async def process_links():
                 delay = random.uniform(config.DELAY_MIN, config.DELAY_MAX)
                 await asyncio.sleep(delay)
                 
-        print(f"Finished - {downloaded} downloaded · {skipped} skipped · {failed} failed")
+        print(f"Finished - {downloaded} downloaded · {skipped} skipped · {failed} failed\n")
     finally:
         await extractor.stop()
 
